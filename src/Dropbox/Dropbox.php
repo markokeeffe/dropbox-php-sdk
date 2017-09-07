@@ -1104,6 +1104,58 @@ class Dropbox
     }
 
     /**
+     * Get a batch of up to 25 thumbnails
+     *
+     * @param array $paths
+     * @param string $size
+     * @param string $format
+     * @return array
+     * @throws DropboxClientException
+     *
+     * @link https://www.dropbox.com/developers/documentation/http/documentation#files-get_thumbnail_batch
+     */
+    public function getThumbnailBatch(array $paths, $size = 'small', $format = 'jpeg')
+    {
+        if (count($paths) === 0) {
+            throw new DropboxClientException("Paths cannot be empty.");
+        }
+        if (count($paths) > 25) {
+            throw new DropboxClientException("Limited to 25 paths.");
+        }
+
+        //Invalid Format
+        if (!in_array($format, ['jpeg', 'png'])) {
+            throw new DropboxClientException("Invalid format. Must either be 'jpeg' or 'png'.");
+        }
+
+        //Thumbnail size
+        $size = $this->getThumbnailSize($size);
+
+        $entries = [];
+
+        foreach ($paths as $path) {
+            $entries[] = [
+                'path' => $path,
+                'format' => $format,
+                'size' => $size,
+            ];
+        }
+
+        //Get Thumbnail
+        $response = $this->postToContent('/files/get_thumbnail_batch', ['entries' => $entries]);
+
+        $responseBody = $response->getDecodedBody();
+
+        $thumbnails = [];
+
+        foreach ($responseBody['entries'] as $responseEntry) {
+            $thumbnails[] = new Thumbnail($responseEntry['metadata'], $responseEntry['thumbnail']);
+        }
+
+        return $thumbnails;
+    }
+
+    /**
      * Get thumbnail size
      *
      * @param  string $size Thumbnail Size

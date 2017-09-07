@@ -185,7 +185,7 @@ class DropboxClient
         $url = $this->buildUrl($request->getEndpoint(), $request->getEndpointType());
 
         //The Endpoint is content
-        if ($request->getEndpointType() === 'content') {
+        if ($request->getEndpointType() === 'content' && $request->getEndpoint() !== '/files/get_thumbnail_batch') {
             //Dropbox requires the parameters to be passed
             //through the 'Dropbox-API-Arg' header
             $request->setHeaders(['Dropbox-API-Arg' => json_encode($request->getParams())]);
